@@ -1,0 +1,28 @@
+name: validate-kubernetes-manifests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v4
+
+    - name: Render kustomize
+      run: |
+        kubectl kustomize apps/online-boutique/base > rendered.yaml
+        grep -q "kind: Deployment" rendered.yaml
+        grep -q "kind: Service" rendered.yaml
+
+    - name: Show rendered resources
+      run: |
+        grep "^kind:" rendered.yaml | sort | uniq -c
